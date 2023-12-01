@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+
+members = [
+  "day-*", "util"
+]
+
+[workspace.dependencies]
+anyhow = "1.0.75"
+pretty_assertions = "1.4.0"
