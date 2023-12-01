@@ -8,7 +8,7 @@ fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::{assert_eq, assert_ne};
+    use pretty_assertions::assert_eq;
     use super::*;
 
     #[test]

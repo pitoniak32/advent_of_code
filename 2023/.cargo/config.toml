@@ -1,2 +1,5 @@
 [alias]
-xtask = "run --package xtask --"
+xtask = "run --release --package xtask --"
+r = "xtask run"
+b = "xtask build"
+t = "xtask test"

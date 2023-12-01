@@ -29,9 +29,7 @@ struct GenerateArgs {
 
 #[derive(Args)]
 struct DayPartArgs {
-    #[arg(short, long)]
     day: u8,
-    #[arg(short, long)]
     part: u8,
 }
 
