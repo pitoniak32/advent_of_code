@@ -31,6 +31,7 @@ struct GenerateArgs {
 struct DayPartArgs {
     day: u8,
     part: u8,
+    opts: Vec<String>,
 }
 
 fn main() -> Result<()> {
@@ -48,19 +49,19 @@ fn main() -> Result<()> {
         XTaskCommands::Run(args) => {
             Command::new(cargo)
                 .current_dir(project_root)
-                .args(cargo_day_part("run", args.day, args.part))
+                .args(cargo_day_part("run", args))
                 .status()?;
         }
         XTaskCommands::Build(args) => {
             Command::new(cargo)
                 .current_dir(project_root)
-                .args(cargo_day_part("build", args.day, args.part))
+                .args(cargo_day_part("build", args))
                 .status()?;
         }
         XTaskCommands::Test(args) => {
             Command::new(cargo)
                 .current_dir(project_root)
-                .args(cargo_day_part("test", args.day, args.part))
+                .args(cargo_day_part("test", args))
                 .status()?;
         }
     }
@@ -68,8 +69,19 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn cargo_day_part(cmd: &str, day: u8, part: u8) -> Vec<String> {
-    vec!(cmd.to_string(), "--package".to_string(), format!("day-{day:02}"), "--bin".to_string(), format!("part{part}"))
+fn cargo_day_part(cmd: &str, args: DayPartArgs) -> Vec<String> {
+    let day = args.day;
+    let part = args.part;
+    let mut opts = args.opts;
+    let mut args = vec![
+        cmd.to_string(),
+        "--package".to_string(),
+        format!("day-{day:02}"),
+        "--bin".to_string(),
+        format!("part{part}"),
+    ];
+    args.append(&mut opts);
+    args
 }
 
 fn project_root() -> PathBuf {
