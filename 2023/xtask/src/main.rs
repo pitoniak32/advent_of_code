@@ -24,7 +24,8 @@ enum XTaskCommands {
 
 #[derive(Args)]
 struct GenerateArgs {
-    name: String,
+    /// day you want to generate. ex: 1 for day-01
+    day_num: u8,
 }
 
 #[derive(Args)]
@@ -43,7 +44,7 @@ fn main() -> Result<()> {
         XTaskCommands::Generate(args) => {
             Command::new(cargo)
                 .current_dir(project_root)
-                .args(["generate", "--path", "./template", "--name", &args.name])
+                .args(["generate", "--path", "./template", "--name", &format!("day-{:02}", &args.day_num)])
                 .status()?;
         }
         XTaskCommands::Run(args) => {
