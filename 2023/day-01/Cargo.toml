@@ -13,3 +13,9 @@ regex = "1.10.2"
 [dev-dependencies]
 pretty_assertions = { workspace = true }
 rstest = { workspace = true }
+divan = { workspace = true }
+
+[[bench]]
+name = "day-01"
+path = "benches/benchmarks.rs"
+harness = false
