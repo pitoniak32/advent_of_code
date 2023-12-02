@@ -73,9 +73,9 @@ fn get_code(code: &str) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use pretty_assertions::assert_eq;
     use rstest::rstest;
+    use super::*;
 
     #[rstest]
     #[case("4md", 44)]
