@@ -3,10 +3,7 @@ use anyhow::Result;
 fn main() -> Result<()> {
     let input_file = include_str!("../../input2.txt");
     let mut total_code = 0;
-    for line in input_file.split("\n") {
-        if line.trim().len() < 1 {
-            continue;
-        }
+    for line in input_file.lines() {
         let code = get_code(line);
         total_code += code;
     }
@@ -78,54 +75,20 @@ fn get_code(code: &str) -> u32 {
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
+    use rstest::rstest;
 
-    #[test]
-    fn test_it_works_qxtbbtwo7jrdgxlcpxbczxhnpjthreetwogcfl() {
-        assert_eq!(get_code("qxtbbtwo7jrdgxlcpxbczxhnpjthreetwogcfl"), 22);
-    }
-
-    #[test]
-    fn test_it_works_4md() {
-        assert_eq!(get_code("4md"), 44);
-    }
-
-    #[test]
-    fn test_it_works_5sixfive() {
-        assert_eq!(get_code("5sixfive"), 55);
-    }
-
-    #[test]
-    fn test_it_works_rv1() {
-        assert_eq!(get_code("rv1"), 11);
-    }
-
-    #[test]
-    fn test_it_works_two1nine() {
-        assert_eq!(get_code("two1nine"), 29);
-    }
-
-    #[test]
-    fn test_it_works_eightwothree() {
-        assert_eq!(get_code("eightwothree"), 83);
-    }
-
-    #[test]
-    fn test_it_works_1eightwothree() {
-        assert_eq!(get_code("1eightwothree"), 13);
-    }
-
-    #[test]
-    fn test_it_works_df1dsfd() {
-        assert_eq!(get_code("df1dsfd"), 11);
-    }
-
-    #[test]
-    fn test_it_works_dftwodsfd() {
-        assert_eq!(get_code("dftwodsfd"), 22);
-    }
-
-    #[test]
-    fn test_it_works_threemctclrrzvqzdnmkpgffive3snhxseven() {
-        assert_eq!(get_code("threemctclrrzvqzdnmkpgffive3snhxseven"), 37);
+    #[rstest]
+    #[case("4md", 44)]
+    #[case("5sixfive", 55)]
+    #[case("rv1", 11)]
+    #[case("two1nine", 29)]
+    #[case("eightwothree", 83)]
+    #[case("1eightwothree", 13)]
+    #[case("df1dsfd", 11)]
+    #[case("dftwodsfd", 22)]
+    #[case("threemctclrrzvqzdnmkpgffive3snhxseven", 37)]
+    #[case("qxtbbtwo7jrdgxlcpxbczxhnpjthreetwogcfl", 22)]
+    fn test_it_works_(#[case] input: &str, #[case] expected: u32) {
+        assert_eq!(get_code(input), expected);
     }
 }

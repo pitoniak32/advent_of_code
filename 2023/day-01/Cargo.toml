@@ -12,3 +12,4 @@ regex = "1.10.2"
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
+rstest = { workspace = true }
