@@ -1,105 +1,133 @@
-use std::borrow::BorrowMut;
+use std::collections::BTreeMap;
 
 use anyhow::Result;
 
-pub fn touch_gear(gears: &mut Vec<Gear>, digits: &Vec<char>, i: i32, j: i32, toks: &Vec<Vec<char>>) -> bool {
-    if i < 0 || j < 0 {
-        return false;
-    }
+#[derive(Debug, Copy, Clone)]
+pub enum Token {
+    Symbol(char),
+    Gear,
+    Dot,
+    Digit { pos: Pos, val: char },
+}
 
-    if let Some(j_toks) = toks.get(i as usize) {
-        if let Some(ij_c) = j_toks.get(j as usize) {
-            if &'*' == ij_c {
-                add_gear(
-                    Gear {
-                        idx_i: i as usize,
-                        idx_j: j as usize,
-                        touching_nums: vec![],
-                    },
-                    gears,
-                );
-            }
-        }
-    }
+#[derive(Debug, Ord, Eq, PartialEq, PartialOrd, Copy, Clone)]
+pub struct Pos {
+    pub x: i32,
+    pub y: i32,
+}
 
-    for gear in gears {
-        if gear.idx_i == i as usize && gear.idx_j == j as usize {
-            let tn_l = gear.touching_nums.len();
-            let tn = &mut gear.touching_nums;
-            dbg!(tn_l);
-            dbg!(&tn);
-            dbg!(&digits);
-            if tn_l > 0 {
-                tn[tn_l - 1] = digits.clone();
-            } else {
-                tn.push(digits.clone());
-            }
-            return true;
-        }
+#[derive(Debug, Clone)]
+pub struct Number {
+    pub digits: Vec<Token>,
+}
+
+impl Number {
+    pub fn get_value(&self) -> u32 {
+        String::from_iter(self.digits.iter().map(|tok| match tok {
+            Token::Digit {pos: _, val} => val,
+            _ => unreachable!("should all be digits"),
+        }))
+        .parse()
+        .expect("should be a number")
     }
-    false
 }
 
 #[derive(Debug)]
 pub struct Gear {
-    pub idx_i: usize,
-    pub idx_j: usize,
-    pub touching_nums: Vec<Vec<char>>,
-}
-
-pub fn add_gear(gear: Gear, gears: &mut Vec<Gear>) {
-    let matched: Vec<&Gear> = gears
-        .iter()
-        .filter(|g| g.idx_i == gear.idx_i && g.idx_j == gear.idx_j)
-        .collect();
-
-    if matched.len() == 0 {
-        gears.push(gear);
-    }
+    pub pos: Pos,
+    pub touching_nums: Vec<Number>,
 }
 
 pub fn process(input: &str) -> Result<String> {
-    let mut tokens: Vec<Vec<char>> = vec![];
-    for line in input.lines() {
-        tokens.push(line.chars().collect())
-    }
-    let mut gears: Vec<Gear> = vec![];
-    for (i, i_tok) in tokens.iter().enumerate() {
-        let mut num = vec![];
-        for (j, j_tok) in i_tok.iter().enumerate() {
-            if j_tok.is_ascii_digit() {
-                num.push(*j_tok);
-                let touching = touch_gear(&mut gears, &num, i as i32 - 1, j as i32 - 1, &tokens) ||
-                               touch_gear(&mut gears, &num, i as i32 - 1, j as i32, &tokens) ||
-                               touch_gear(&mut gears, &num, i as i32 - 1, j as i32 + 1, &tokens) ||
-                               touch_gear(&mut gears, &num, i as i32, j as i32 - 1, &tokens) ||
-                               touch_gear(&mut gears, &num, i as i32, j as i32 + 1, &tokens) ||
-                               touch_gear(&mut gears, &num, i as i32 + 1, j as i32 - 1, &tokens) ||
-                               touch_gear(&mut gears, &num, i as i32 + 1, j as i32, &tokens) ||
-                               touch_gear(&mut gears, &num, i as i32 + 1, j as i32 + 1, &tokens);
+    let tokens: BTreeMap<Pos, Token> = input
+        .lines()
+        .enumerate()
+        .flat_map(|(x, line)| {
+            line.chars().enumerate().map(move |(y, character)| {
+                    let pos = Pos {
+                        x: x as i32,
+                        y: y as i32,
+                    };
+                (
+                    pos,
+                    match character {
+                        '.' => Token::Dot,
+                        c if c.is_ascii_digit() => Token::Digit {pos, val: c},
+                        '*' => Token::Gear,
+                        s => Token::Symbol(s),
+                    },
+                )
+            })
+        })
+        .collect::<BTreeMap<Pos, Token>>();
+
+    let mut nums: Vec<Number> = Vec::new();
+    let mut num: Number = Number { digits: vec![] };
+    let _ = tokens
+        .iter()
+        .map(|(_, tok)| {
+            if let Token::Digit {pos: _pos, val: _val} = tok {
+                num.digits.push(tok.clone())
             } else {
-               let _ = gears.iter_mut().map(|g| {
-                   if let Some(ll) = g.touching_nums.last() {
-                        if ll.len() > 0 {
-                            g.touching_nums.push(vec![])
-                        }
-                   }
-               }).collect::<Vec<_>>();
-            }
-            dbg!(&gears);
-            println!("j_tok: {j_tok}");
-        }
-    }
-    let total: i64 = gears.iter().map(|g| {
-        if g.touching_nums.len() > 1 {
-            g.touching_nums.iter().filter_map(|n|{
-                match n.len() {
-                    0 => None,
-                    _ => Some(String::from_iter(n).parse::<i64>().expect("should be a number")),
+                if num.digits.len() > 0 {
+                    nums.push(num.clone());
+                    num = Number { digits: vec![] };
                 }
-            }).product::<i64>()
-        } else { 0 }
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let possibles = [
+        Pos {x: -1, y: -1 },
+        Pos {x: -1, y: 0 },
+        Pos {x: -1, y: 1 },
+        Pos {x: 0, y: -1 },
+        Pos {x: 0, y: 1 },
+        Pos {x: 1, y: -1 },
+        Pos {x: 1, y: 0 },
+        Pos {x: 1, y: 1 },
+    ];
+
+    let matched = tokens.iter().filter_map(|(tok_pos, tok)| {
+        match tok {
+            Token::Gear => {
+                Some(nums.iter().filter(|n| {
+                    if n.digits.iter().any(|d| {
+                        match d {
+                            Token::Digit {pos, val: _} => {
+                                for possible in possibles {
+                                    if pos.x == tok_pos.x + possible.x && pos.y == tok_pos.y + possible.y {
+                                        return true
+                                    }
+                                }
+                                false
+                            },
+                            _ => false
+                        }
+                    }) {
+                        true
+                    } else {
+                        false
+                    }
+                }).collect::<Vec<_>>())
+            },
+            _ => { None }, 
+        }
+    }).collect::<Vec<_>>();
+
+    let nums = matched.iter().filter_map(|nums| {
+        if nums.len() < 2 {
+            return None 
+        }
+        Some(nums.iter().map(|num| { num.get_value() }).collect::<Vec<_>>())
+    }).collect::<Vec<_>>();
+
+    let total: u32 = nums.iter().map(|nums| {
+        nums.iter().product::<u32>()
     }).sum();
+
+    dbg!(nums);
+
     Ok(total.to_string())
 }
 
@@ -107,7 +135,6 @@ pub fn process(input: &str) -> Result<String> {
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
-    use rstest::rstest;
 
     #[test]
     fn test_process_initial() -> Result<()> {

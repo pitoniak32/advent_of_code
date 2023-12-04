@@ -78,7 +78,6 @@ pub fn process(
 #[cfg(test)]
 mod tests {
     use pretty_assertions::assert_eq;
-    use rstest::rstest;
     use super::*;
 
     #[test]
