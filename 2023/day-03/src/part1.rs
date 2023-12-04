@@ -1,6 +1,4 @@
 use anyhow::Result;
-use nom::IResult;
-use nom::character::complete::digit1;
 
 #[derive(Debug)]
 pub enum Token {
@@ -23,6 +21,7 @@ pub fn touch_c(c: &char, i: i32, j: i32, toks: &Vec<Vec<char>>) -> bool {
 }
 
 // 884871023127 = too high
+// 498559
 // 497027 = too low
 pub fn process(
     input: &str,
@@ -37,7 +36,8 @@ pub fn process(
         let mut num: Vec<char> = vec![];
         let mut touching = false;
         for (j, j_tok) in i_tok.iter().enumerate() {
-            if j_tok.is_digit(10) {
+            dbg!(j_tok);
+            if j_tok.is_ascii_digit() {
                 num.push(j_tok.clone());
                 if syms.iter().any(|s| {
                     touch_c(s, i as i32 - 1, j as i32 - 1, &tokens) ||
@@ -51,13 +51,23 @@ pub fn process(
                 }) {
                     touching = true;
                 }
+                println!("is: {j_tok}, {touching}, {num:?}");
             } else {
+                println!("not: {j_tok}, {touching}, {num:?}");
                 if touching {
-                    valid.push(String::from_iter(num.clone()).parse::<i64>().expect("should be a number"));
+                    let num = String::from_iter(num.clone()).parse::<i64>().expect("should be a number");
+                    println!("pushing {num}");
+                    valid.push(num);
                 }
+                println!("clearing {num:?}");
                 num.clear();
                 touching = false;
             }
+        }
+        if touching {
+            let num = String::from_iter(num.clone()).parse::<i64>().expect("should be a number");
+            println!("pushing {num}");
+            valid.push(num);
         }
     }
     dbg!(valid.clone());
@@ -84,6 +94,17 @@ mod tests {
 ...$.*....
 .664.598..";
         assert_eq!("4361", process(input)?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_process_edge() -> Result<()> {
+        let input = "
+467..114..
+...*......
+..35...633
+......#...";
+        assert_eq!("1135", process(input)?);
         Ok(())
     }
 
