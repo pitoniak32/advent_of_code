@@ -1,8 +1,10 @@
 use anyhow::Result;
 use std::{
     env,
+    fs::OpenOptions,
+    io::Write,
     path::{Path, PathBuf},
-    process::{Command, Stdio, exit}, fs::OpenOptions, io::Write,
+    process::{exit, Command, Stdio},
 };
 
 use clap::{command, Args, Parser, Subcommand};
@@ -90,9 +92,13 @@ fn main() -> Result<()> {
                     .append(true)
                     .open(format!("day-{:02}.bench.txt", &args.day))
                     .expect("Unable to open benchmark results file");
-                file.write_all(&output.stdout).expect("Unable to write benchmark results to file");
+                file.write_all(&output.stdout)
+                    .expect("Unable to write benchmark results to file");
             } else {
-                eprintln!("benchmark failed, results will not be written: {}", String::from_utf8(output.stderr)?);
+                eprintln!(
+                    "benchmark failed, results will not be written: {}",
+                    String::from_utf8(output.stderr)?
+                );
                 exit(1);
             }
         }
@@ -115,20 +121,20 @@ fn main() -> Result<()> {
 
 fn cargo_day(cmd: &str, args: &mut DayArgs) -> Vec<String> {
     let day = args.day;
-    let mut opts = &mut args.opts;
+    let opts = &mut args.opts;
     let mut args = vec![
         cmd.to_string(),
         "--package".to_string(),
         format!("day-{day:02}"),
     ];
-    args.append(&mut opts);
+    args.append(opts);
     args
 }
 
 fn cargo_day_part_opts(cmd: &str, args: &mut DayPartOptsArgs) -> Vec<String> {
     let day = args.day;
     let part = args.part;
-    let mut opts = &mut args.opts;
+    let opts = &mut args.opts;
     let mut args = vec![
         cmd.to_string(),
         "--package".to_string(),
@@ -136,7 +142,7 @@ fn cargo_day_part_opts(cmd: &str, args: &mut DayPartOptsArgs) -> Vec<String> {
         "--bin".to_string(),
         format!("part{part}"),
     ];
-    args.append(&mut opts);
+    args.append(opts);
     args
 }
 

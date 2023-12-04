@@ -9,12 +9,12 @@ pub enum Token {
 
 pub fn touch_c(c: &char, i: i32, j: i32, toks: &Vec<Vec<char>>) -> bool {
     if i < 0 || j < 0 {
-        return false
-    } 
+        return false;
+    }
 
     if let Some(j_toks) = toks.get(i as usize) {
         if let Some(ij_c) = j_toks.get(j as usize) {
-            return c == ij_c
+            return c == ij_c;
         }
     }
     false
@@ -23,9 +23,7 @@ pub fn touch_c(c: &char, i: i32, j: i32, toks: &Vec<Vec<char>>) -> bool {
 // 884871023127 = too high
 // 498559
 // 497027 = too low
-pub fn process(
-    input: &str,
-) -> Result<String> {
+pub fn process(input: &str) -> Result<String> {
     let syms = vec!['$', '+', '#', '*', '/', '%', '=', '-', '&', '@'];
     let mut tokens: Vec<Vec<char>> = vec![];
     for line in input.lines() {
@@ -38,16 +36,16 @@ pub fn process(
         for (j, j_tok) in i_tok.iter().enumerate() {
             dbg!(j_tok);
             if j_tok.is_ascii_digit() {
-                num.push(j_tok.clone());
+                num.push(*j_tok);
                 if syms.iter().any(|s| {
-                    touch_c(s, i as i32 - 1, j as i32 - 1, &tokens) ||
-                    touch_c(s, i as i32 - 1, j as i32, &tokens) ||
-                    touch_c(s, i as i32 - 1, j as i32 + 1, &tokens) ||
-                    touch_c(s, i as i32, j as i32 - 1, &tokens) ||
-                    touch_c(s, i as i32, j as i32 + 1, &tokens) ||
-                    touch_c(s, i as i32 + 1, j as i32 - 1, &tokens) ||
-                    touch_c(s, i as i32 + 1, j as i32, &tokens) ||
-                    touch_c(s, i as i32 + 1, j as i32 + 1, &tokens)
+                    touch_c(s, i as i32 - 1, j as i32 - 1, &tokens)
+                        || touch_c(s, i as i32 - 1, j as i32, &tokens)
+                        || touch_c(s, i as i32 - 1, j as i32 + 1, &tokens)
+                        || touch_c(s, i as i32, j as i32 - 1, &tokens)
+                        || touch_c(s, i as i32, j as i32 + 1, &tokens)
+                        || touch_c(s, i as i32 + 1, j as i32 - 1, &tokens)
+                        || touch_c(s, i as i32 + 1, j as i32, &tokens)
+                        || touch_c(s, i as i32 + 1, j as i32 + 1, &tokens)
                 }) {
                     touching = true;
                 }
@@ -55,7 +53,9 @@ pub fn process(
             } else {
                 println!("not: {j_tok}, {touching}, {num:?}");
                 if touching {
-                    let num = String::from_iter(num.clone()).parse::<i64>().expect("should be a number");
+                    let num = String::from_iter(num.clone())
+                        .parse::<i64>()
+                        .expect("should be a number");
                     println!("pushing {num}");
                     valid.push(num);
                 }
@@ -65,7 +65,9 @@ pub fn process(
             }
         }
         if touching {
-            let num = String::from_iter(num.clone()).parse::<i64>().expect("should be a number");
+            let num = String::from_iter(num.clone())
+                .parse::<i64>()
+                .expect("should be a number");
             println!("pushing {num}");
             valid.push(num);
         }
@@ -73,12 +75,12 @@ pub fn process(
     dbg!(valid.clone());
     let val: i64 = valid.iter().sum();
     Ok(val.to_string())
-    }
+}
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_process_initial() -> Result<()> {

@@ -16,27 +16,27 @@ pub fn process(input: &str) -> Result<u64> {
                     if x > blue {
                         blue = x;
                     }
-                },
-                None => {},
-                _ => unreachable!("should only have blue")
+                }
+                None => {}
+                _ => unreachable!("should only have blue"),
             }
             match set.cubes_red {
                 Some(Cube::Red(x)) => {
                     if x > red {
                         red = x;
                     }
-                },
-                None => {},
-                _ => unreachable!("should only have red")
+                }
+                None => {}
+                _ => unreachable!("should only have red"),
             }
             match set.cubes_green {
                 Some(Cube::Green(x)) => {
                     if x > green {
                         green = x;
                     }
-                },
-                None => {},
-                _ => unreachable!("should only have green")
+                }
+                None => {}
+                _ => unreachable!("should only have green"),
             }
         }
         dbg!(red);
@@ -53,18 +53,24 @@ pub fn process(input: &str) -> Result<u64> {
 pub fn parse_game(input: &str) -> Result<Game> {
     let mut parts = input.split_inclusive(": ");
     let game = parts.next().expect("Game prefix should exist");
-    let game_id = String::from_iter(game.chars().filter(|c| c.is_digit(10)).collect::<Vec<char>>()).parse::<u32>().expect("should be u32");
+    let game_id = String::from_iter(
+        game.chars()
+            .filter(|c| c.is_ascii_digit())
+            .collect::<Vec<char>>(),
+    )
+    .parse::<u32>()
+    .expect("should be u32");
 
     let rest = parts.next().expect("there should be a set");
 
     let sets = parse_sets(rest)?;
 
-    Ok(Game { id: game_id.clone(), sets })
+    Ok(Game { id: game_id, sets })
 }
 
 pub fn parse_sets(input: &str) -> Result<Vec<Set>> {
     let mut sets = vec![];
-    for set in input.split(";") {
+    for set in input.split(';') {
         sets.push(parse_cubes(set)?);
     }
     Ok(sets)
@@ -76,8 +82,8 @@ pub fn parse_cubes(input: &str) -> Result<Set> {
         cubes_green: None,
         cubes_blue: None,
     };
-    for cube in input.split(",") {
-        let mut cube_parts = cube.trim().split(" ");
+    for cube in input.split(',') {
+        let mut cube_parts = cube.trim().split(' ');
         let count = cube_parts.next().expect("should have a cube count");
         let color = cube_parts.next().expect("should have a cube color");
         let cube = Cube::str_cube(color, count.parse().expect("should be a number"));
@@ -117,7 +123,7 @@ impl Cube {
             "red" => Cube::Red(count),
             "green" => Cube::Green(count),
             "blue" => Cube::Blue(count),
-            _ => unreachable!("color is not supported")
+            _ => unreachable!("color is not supported"),
         }
     }
 }
@@ -126,7 +132,6 @@ impl Cube {
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
-    use rstest::rstest;
 
     #[test]
     fn test_parse_game() -> Result<()> {
@@ -139,7 +144,7 @@ mod tests {
                     cubes_green: None,
                 },
                 Set {
-                    cubes_red: Some(Cube::Red(1)), 
+                    cubes_red: Some(Cube::Red(1)),
                     cubes_green: Some(Cube::Green(2)),
                     cubes_blue: Some(Cube::Blue(6)),
                 },

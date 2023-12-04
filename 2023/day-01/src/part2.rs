@@ -1,8 +1,6 @@
 use anyhow::Result;
 
-pub fn process(
-    input: &str,
-) -> Result<String> {
+pub fn process(input: &str) -> Result<String> {
     let mut total_code = 0;
     for line in input.lines() {
         let code = get_code(line);
@@ -46,22 +44,14 @@ fn get_code(code: &str) -> u32 {
     }
 
     for (idx, l_char) in code.chars().enumerate() {
-        if l_char.is_digit(10) {
+        if l_char.is_ascii_digit() {
             if idx <= lowest_idx {
                 lowest_idx = idx;
-                first_num = l_char
-                    .to_digit(10)
-                    .expect("to be u32")
-                    .try_into()
-                    .unwrap();
+                first_num = l_char.to_digit(10).expect("to be u32").try_into().unwrap();
             }
             if idx >= highest_idx {
                 highest_idx = idx;
-                last_num = l_char
-                    .to_digit(10)
-                    .expect("to be u32")
-                    .try_into()
-                    .unwrap();
+                last_num = l_char.to_digit(10).expect("to be u32").try_into().unwrap();
             }
         }
     }
@@ -73,9 +63,9 @@ fn get_code(code: &str) -> u32 {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use pretty_assertions::assert_eq;
     use rstest::rstest;
-    use super::*;
 
     #[rstest]
     #[case("4md", 44)]

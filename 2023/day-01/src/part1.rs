@@ -1,8 +1,6 @@
 use anyhow::Result;
 
-pub fn process(
-    input: &str,
-) -> Result<String> {
+pub fn process(input: &str) -> Result<String> {
     let mut total_code = 0;
     for line in input.lines() {
         let code = get_code(line);
@@ -14,19 +12,19 @@ pub fn process(
 fn get_code(code: &str) -> u32 {
     let mut vals = vec![];
     for l_char in code.chars() {
-        if l_char.is_digit(10) {
+        if l_char.is_ascii_digit() {
             vals.push(l_char);
         }
     }
 
     if vals.len() == 1 {
-        vals.push(vals.get(0).unwrap().clone());
+        vals.push(*vals.first().unwrap());
     }
 
     format!(
         "{}{}",
-        vals.get(0).unwrap().clone(),
-        vals.get(vals.len() - 1).unwrap().clone(),
+        vals.first().unwrap().clone(),
+        vals.last().unwrap().clone(),
     )
     .parse::<u32>()
     .expect("to be u32")
@@ -34,9 +32,9 @@ fn get_code(code: &str) -> u32 {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use pretty_assertions::assert_eq;
     use rstest::rstest;
-    use super::*;
 
     #[rstest]
     #[case("a1b2c3d4e5f", 15)]
