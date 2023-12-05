@@ -1,15 +1,14 @@
 use anyhow::Result;
 
 pub fn process(
-    _input: &str,
+    input: &str,
 ) -> Result<String> {
-    todo!("{{crate_name}} - part 2");
+    todo!("{input}");
 }
 
 #[cfg(test)]
 mod tests {
     use pretty_assertions::assert_eq;
-    use rstest::rstest;
     use super::*;
 
     #[test]
