@@ -18,7 +18,7 @@ pub fn process(input: &str) -> Result<String> {
             for wc in &card.winning {
                 if yc == wc {
                     if card_count > 1 {
-                        card_count = card_count * 2;
+                        card_count *= 2;
                     } else {
                         card_count += 1;
                     }
