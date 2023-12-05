@@ -27,7 +27,6 @@ pub fn process(input: &str) -> Result<String> {
         }
         counter += card_count;
     }
-    dbg!(&cards);
     Ok(counter.to_string())
 }
 

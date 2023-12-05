@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use anyhow::Result;
 use nom::{
     bytes::complete::tag,
@@ -7,31 +9,48 @@ use nom::{
     IResult,
 };
 
+// 5571760 = just right
 pub fn process(input: &str) -> Result<String> {
-    let (_, cards) = parse_cards(input).unwrap();
-    let mut counter = 0;
+    let (_, mut cards) = parse_cards(input).unwrap();
+    let mut cards_matching_count: BTreeMap<usize, usize> = BTreeMap::new();
+
     for card in &cards {
-        let mut card_count = 0;
+        cards_matching_count.insert(card.id, 1);
+    }
+
+    for card in cards.iter() {
+        let mut matching_card_count = 0;
         for yc in &card.yours {
             for wc in &card.winning {
                 if yc == wc {
-                    if card_count > 1 {
-                        card_count = card_count * 2;
-                    } else {
-                        card_count += 1;
-                    }
+                    matching_card_count += 1;
                 }
             }
         }
-        counter += card_count;
+        cards_matching_count.insert(card.id, matching_card_count);
     }
-    dbg!(&cards);
-    Ok(counter.to_string())
+
+    let _ = cards_matching_count
+        .iter()
+        .enumerate()
+        .map(|(idx, (k, v))| {
+            let range = *k..k + *v;
+            let curr_card_count = &cards.get(idx).unwrap().count.clone();
+            for i in range {
+                if let Some(card) = cards.get_mut(i) {
+                    card.count += curr_card_count;
+                }
+            }
+        })
+        .collect::<Vec<_>>();
+
+    Ok(cards.iter().map(|c| c.count).sum::<usize>().to_string())
 }
 
 #[derive(Debug)]
 pub struct Card<'a> {
-    pub id: &'a str,
+    pub id: usize,
+    pub count: usize,
     pub yours: Vec<&'a str>,
     pub winning: Vec<&'a str>,
 }
@@ -50,7 +69,15 @@ pub fn parse_card(input: &str) -> IResult<&str, Card> {
         ),
     )(input)?;
 
-    Ok((input, Card { id, yours, winning }))
+    Ok((
+        input,
+        Card {
+            id: id.parse().unwrap(),
+            count: 1,
+            yours,
+            winning,
+        },
+    ))
 }
 pub fn parse_cards(input: &str) -> IResult<&str, Vec<Card>> {
     let (input, cards) = separated_list1(line_ending, parse_card)(input)?;
@@ -70,14 +97,7 @@ Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
 Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
 Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
 Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11";
-        assert_eq!("13", process(input)?);
-        Ok(())
-    }
-
-    #[test]
-    fn test_process_one() -> Result<()> {
-        let input = "Card   3: 60 78 77 44 62 54 94 50 32 11 |  2  6 89 50 11 60 57 53 71 44 47 62 49 42 73 78 77 54 99 29 35 94 32 68 74";
-        assert_eq!("", process(input)?);
+        assert_eq!("30", process(input)?);
         Ok(())
     }
 }
