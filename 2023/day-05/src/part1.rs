@@ -57,12 +57,11 @@ impl<'a> Almanac<'a> {
                 .expect("should have h-2-l entry")
                 .get_dest(humidity);
             dbg!(loc);
-            locs.push(loc.clone());
+            locs.push(loc);
         }
-        locs.iter()
+        *locs.iter()
             .min()
             .expect("should have at least one value")
-            .clone()
     }
 }
 
@@ -82,9 +81,9 @@ impl Entry {
     fn new(entries: Vec<Vec<u64>>) -> Self {
         let mut final_ranges: Vec<(Range<u64>, Range<u64>)> = Vec::new();
         for value in entries.iter() {
-            let dest_start = value.get(0).expect("should have dest start").clone();
-            let source_start = value.get(1).expect("should have source start").clone();
-            let range_len = value.get(2).expect("should have range len").clone();
+            let dest_start = *value.first().expect("should have dest start");
+            let source_start = *value.get(1).expect("should have source start");
+            let range_len = *value.get(2).expect("should have range len");
 
             let source_range = source_start..source_start + range_len;
             let dest_range = dest_start..dest_start + range_len;
