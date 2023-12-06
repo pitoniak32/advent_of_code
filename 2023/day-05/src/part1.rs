@@ -9,7 +9,7 @@ use nom::{
     IResult,
 };
 
-// 196167384
+// 196_167_384
 impl<'a> Almanac<'a> {
     fn calc_min_loc(&mut self) -> u64 {
         let mut locs = vec![];

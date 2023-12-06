@@ -1,7 +1,4 @@
-use std::{
-    collections::HashMap,
-    ops::Range,
-};
+use std::{collections::HashMap, ops::Range};
 
 use anyhow::Result;
 use nom::{
@@ -12,56 +9,63 @@ use nom::{
     IResult,
 };
 
-// 196167384
+// 125742456 = just right
 impl<'a> Almanac<'a> {
     fn calc_min_loc(&mut self) -> u64 {
         let mut locs = vec![];
-        for seed in self.seeds.clone() {
-            dbg!(&seed);
-            let soil = self
-                .entries
-                .get_mut("seed-to-soil")
-                .expect("should have s-2-s entry")
-                .get_dest(seed as u64);
-            dbg!(&soil);
-            let fert = self
-                .entries
-                .get_mut("soil-to-fertilizer")
-                .expect("should have s-2-f entry")
-                .get_dest(soil);
-            dbg!(fert);
-            let water = self
-                .entries
-                .get_mut("fertilizer-to-water")
-                .expect("should have f-2-w entry")
-                .get_dest(fert);
-            dbg!(water);
-            let light = self
-                .entries
-                .get_mut("water-to-light")
-                .expect("should have w-2-l entry")
-                .get_dest(water);
-            dbg!(light);
-            let temp = self
-                .entries
-                .get_mut("light-to-temperature")
-                .expect("should have l-2-t entry")
-                .get_dest(light);
-            dbg!(temp);
-            let humidity = self
-                .entries
-                .get_mut("temperature-to-humidity")
-                .expect("should have t-2-h entry")
-                .get_dest(temp);
-            dbg!(humidity);
-            let loc = self
-                .entries
-                .get_mut("humidity-to-location")
-                .expect("should have h-2-l entry")
-                .get_dest(humidity);
-            dbg!(loc);
-            locs.push(loc.clone());
+        for i in (0..self.seeds.len() - 1).step_by(2) {
+            let seed_range_start = self.seeds.get(i).expect("should have seed start range").clone();
+            let seed_range = seed_range_start
+                ..seed_range_start + self.seeds.get(i + 1).expect("should have seed end range").clone();
+
+            for seed in dbg!(seed_range) {
+                // dbg!(&seed);
+                let soil = self
+                    .entries
+                    .get_mut("seed-to-soil")
+                    .expect("should have s-2-s entry")
+                    .get_dest(seed as u64);
+                // dbg!(&soil);
+                let fert = self
+                    .entries
+                    .get_mut("soil-to-fertilizer")
+                    .expect("should have s-2-f entry")
+                    .get_dest(soil);
+                // dbg!(fert);
+                let water = self
+                    .entries
+                    .get_mut("fertilizer-to-water")
+                    .expect("should have f-2-w entry")
+                    .get_dest(fert);
+                // dbg!(water);
+                let light = self
+                    .entries
+                    .get_mut("water-to-light")
+                    .expect("should have w-2-l entry")
+                    .get_dest(water);
+                // dbg!(light);
+                let temp = self
+                    .entries
+                    .get_mut("light-to-temperature")
+                    .expect("should have l-2-t entry")
+                    .get_dest(light);
+                // dbg!(temp);
+                let humidity = self
+                    .entries
+                    .get_mut("temperature-to-humidity")
+                    .expect("should have t-2-h entry")
+                    .get_dest(temp);
+                // dbg!(humidity);
+                let loc = self
+                    .entries
+                    .get_mut("humidity-to-location")
+                    .expect("should have h-2-l entry")
+                    .get_dest(humidity);
+                // dbg!(loc);
+                locs.push(loc.clone());
+            }
         }
+        
         locs.iter()
             .min()
             .expect("should have at least one value")
@@ -102,11 +106,8 @@ impl Entry {
     }
 
     fn get_dest(&mut self, source: u64) -> u64 {
+        let valid = self.ranges.iter().find(|(sr, _)| sr.contains(&source));
 
-        let valid = self.ranges.iter().find(|(sr, _)| {
-            sr.contains(&source)
-        });
-        
         if let Some((sr, dr)) = valid {
             let offset = source - sr.start;
             dr.start + offset
@@ -230,7 +231,7 @@ temperature-to-humidity map:
 humidity-to-location map:
 60 56 37
 56 93 4";
-        assert_eq!(process(input)?, "35");
+        assert_eq!(process(input)?, "46");
         Ok(())
     }
 }
