@@ -1,56 +1,139 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Range};
 
 use anyhow::Result;
 use nom::{
     bytes::complete::{tag, take_while},
-    character::complete::{alpha1, digit1, line_ending, space1},
-    multi::{fold_many1, separated_list1, many_till},
-    sequence::{preceded, separated_pair, tuple, delimited},
-    IResult, combinator::map,
+    character::complete::{line_ending, space1, u32, u64},
+    multi::separated_list1,
+    sequence::{preceded, separated_pair},
+    IResult,
 };
 
+// 196167384
 impl<'a> Almanac<'a> {
-    fn calc_min_loc(&self) -> String {
-        "".to_string()
+    fn calc_min_loc(&mut self) -> u64 {
+        let mut locs = vec![];
+        for seed in self.seeds.clone() {
+            dbg!(&seed);
+            let soil = self
+                .entries
+                .get_mut("seed-to-soil")
+                .expect("should have s-2-s entry")
+                .get_dest(seed as u64);
+            dbg!(&soil);
+            let fert = self
+                .entries
+                .get_mut("soil-to-fertilizer")
+                .expect("should have s-2-f entry")
+                .get_dest(soil);
+            dbg!(fert);
+            let water = self
+                .entries
+                .get_mut("fertilizer-to-water")
+                .expect("should have f-2-w entry")
+                .get_dest(fert);
+            dbg!(water);
+            let light = self
+                .entries
+                .get_mut("water-to-light")
+                .expect("should have w-2-l entry")
+                .get_dest(water);
+            dbg!(light);
+            let temp = self
+                .entries
+                .get_mut("light-to-temperature")
+                .expect("should have l-2-t entry")
+                .get_dest(light);
+            dbg!(temp);
+            let humidity = self
+                .entries
+                .get_mut("temperature-to-humidity")
+                .expect("should have t-2-h entry")
+                .get_dest(temp);
+            dbg!(humidity);
+            let loc = self
+                .entries
+                .get_mut("humidity-to-location")
+                .expect("should have h-2-l entry")
+                .get_dest(humidity);
+            dbg!(loc);
+            locs.push(loc.clone());
+        }
+        locs.iter()
+            .min()
+            .expect("should have at least one value")
+            .clone()
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct Almanac<'a> {
-    pub seeds: Vec<&'a str>,
-    pub entries: HashMap<&'a str, Vec<Vec<&'a str>>>, // seed_soil: AlmanacEntry,
-                                                      // soil_fert: AlmanacEntry,
-                                                      // fert_water: AlmanacEntry,
-                                                      // water_light: AlmanacEntry,
-                                                      // light_temp: AlmanacEntry,
-                                                      // temp_humid: AlmanacEntry,
-                                                      // humid_loc: AlmanacEntry,
+    pub seeds: Vec<u32>,
+    pub entries: HashMap<&'a str, Entry>,
 }
 
-pub fn parse_entries(input: &str) -> IResult<&str, HashMap<&str, Vec<Vec<&str>>>> {
+#[derive(Clone, Debug, PartialEq)]
+pub struct Entry {
+    pub ranges: Vec<(Range<u64>, Range<u64>)>,
+    pub entries: Vec<Vec<u64>>,
+}
+
+impl Entry {
+    fn new(entries: Vec<Vec<u64>>) -> Self {
+        let mut final_ranges: Vec<(Range<u64>, Range<u64>)> = Vec::new();
+        for value in entries.iter() {
+            let dest_start = value.get(0).expect("should have dest start").clone();
+            let source_start = value.get(1).expect("should have source start").clone();
+            let range_len = value.get(2).expect("should have range len").clone();
+
+            let source_range = source_start..source_start + range_len;
+            let dest_range = dest_start..dest_start + range_len;
+
+            final_ranges.push((source_range, dest_range));
+        }
+
+        Entry {
+            entries,
+            ranges: final_ranges,
+        }
+    }
+
+    fn get_dest(&mut self, source: u64) -> u64 {
+        let valid = self.ranges.iter().find(|(sr, _)| sr.contains(&source));
+
+        if let Some((sr, dr)) = valid {
+            let offset = source - sr.start;
+            dr.start + offset
+        } else {
+            source
+        }
+    }
+}
+
+pub fn parse_entries(input: &str) -> IResult<&str, HashMap<&str, Entry>> {
     let (o, items) = separated_list1(
         tag("\n\n"),
         separated_pair(
             take_while(|c| c != ' '),
             tag(" map:\n"),
-            separated_list1(line_ending, separated_list1(space1, digit1)),
+            separated_list1(line_ending, separated_list1(space1, u64)),
         ),
     )(input)?;
 
-    Ok((
-        o,
-        items.iter().fold(
-            HashMap::new(),
-            |mut acc: HashMap<&str, Vec<Vec<&str>>>, (title, value)| {
-                acc.insert(title, value.clone());
-                acc
-            },
-        ),
-    ))
+    let folded = items.iter().fold(
+        HashMap::new(),
+        |mut acc: HashMap<&str, Entry>, (title, value)| {
+            let _ = acc.insert(title, Entry::new(value.clone()));
+            acc
+        },
+    );
+
+    Ok((o, folded))
 }
 
-pub fn parse_seeds(input: &str) -> IResult<&str, Vec<&str>> {
-    let (o, seeds) = preceded(tag("seeds: "), separated_list1(space1, digit1))(input)?;
+pub fn parse_seeds(input: &str) -> IResult<&str, Vec<u32>> {
+    let (o, seeds) = preceded(tag("seeds: "), separated_list1(space1, u32))(input)?;
+    dbg!(&seeds);
     Ok((o, seeds))
 }
 
@@ -60,11 +143,11 @@ pub fn parse_almanac(input: &str) -> IResult<&str, Almanac> {
 }
 
 pub fn process(input: &'static str) -> Result<String> {
-    let (_, almanac) = parse_almanac(input)?;
-    
-    let loc = dbg!(almanac).calc_min_loc();
+    let (_, mut almanac) = parse_almanac(input)?;
 
-    Ok(loc)
+    let loc = almanac.calc_min_loc();
+
+    Ok(loc.to_string())
 }
 
 #[cfg(test)]
@@ -76,7 +159,7 @@ mod tests {
     fn test_parse_seeds() -> Result<()> {
         let input = "seeds: 79 14 55 13";
         let (_, result) = parse_seeds(input)?;
-        assert_eq!(vec!["79", "14", "55", "13"], result);
+        assert_eq!(vec![79, 14, 55, 13], result);
         Ok(())
     }
 
@@ -85,21 +168,24 @@ mod tests {
         // Arrange
         let input = "seed-to-soil map:
 50 98 2
-52 50 48
+52 50 5
 
 ";
-
         let mut expected = HashMap::new();
+        let ranges = vec![(98..100, 50..52), (50..55, 52..57)];
         expected.insert(
             "seed-to-soil",
-            vec![vec!["50", "98", "2"], vec!["52", "50", "48"]],
+            Entry {
+                entries: vec![vec![50, 98, 2], vec![52, 50, 5]],
+                ranges,
+            },
         );
 
         // Act
         let (_, result) = parse_entries(input)?;
 
         // Assert
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
         Ok(())
     }
 
