@@ -4,8 +4,7 @@ use anyhow::Result;
 use nom::{
     bytes::complete::take_until,
     character::complete::{self, line_ending, space1},
-    multi::{many1, separated_list1},
-    sequence::{separated_pair, tuple},
+    multi::{many1, separated_list1}, sequence::{separated_pair, tuple},
     IResult, Parser,
 };
 use nom_supreme::{tag::complete::tag, ParserExt};
