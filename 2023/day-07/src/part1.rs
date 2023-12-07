@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+use std::{cmp::Ordering, ops::Deref};
 
 use anyhow::Result;
+use itertools::Itertools;
 use nom::{
     character::complete::{self, alphanumeric1, line_ending},
     multi::separated_list1,
@@ -8,21 +9,95 @@ use nom::{
     IResult,
 };
 
-#[derive(Debug)]
-pub struct Game {
-    pub hand: Vec<char>,
+/// Variants are ordered by their value
+#[derive(Debug, PartialEq, PartialOrd, Eq, Hash, Clone)]
+pub enum Card {
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
+    Nine,
+    T,
+    J,
+    Q,
+    K,
+    A,
+}
+
+impl Card {
+    fn from_char(card: &char) -> Self {
+        match card {
+            'A' => Card::A,
+            'K' => Card::K,
+            'Q' => Card::Q,
+            'J' => Card::J,
+            'T' => Card::T,
+            '9' => Card::Nine,
+            '8' => Card::Eight,
+            '7' => Card::Seven,
+            '6' => Card::Six,
+            '5' => Card::Five,
+            '4' => Card::Four,
+            '3' => Card::Three,
+            '2' => Card::Two,
+            _ => unreachable!("card type not implemented"),
+        }
+    }
+}
+
+#[derive(Debug, Eq)]
+pub struct Hand {
+    pub cards: Vec<Card>,
+    pub strength: HandStrength,
     pub bid: u32,
 }
 
-#[derive(Debug)]
-pub struct Hand {
-    pub cards: HashMap<char, u32>,
-    pub strength: HandStrength,
-    pub rank: u32,
+// Implementing PartialEq
+impl PartialEq for Hand {
+    fn eq(&self, other: &Self) -> bool {
+        self.strength == other.strength
+    }
+}
+
+impl PartialOrd for Hand {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Hand {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        if self.strength > other.strength {
+            return Ordering::Greater;
+        } else if self.strength < other.strength {
+            return Ordering::Less;
+        }
+
+        let self_iter = self.cards.iter();
+        let mut other_iter = other.cards.iter();
+
+        for sc in self_iter {
+            let oc = other_iter
+                .next()
+                .expect("should have the same number of cards as self");
+
+            if sc == oc {
+                continue;
+            } else if sc > oc {
+                return Ordering::Greater;
+            } else {
+                return Ordering::Less;
+            }
+        }
+        Ordering::Equal
+    }
 }
 
 /// Variants are ordered by their value
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Eq, Hash)]
 pub enum HandStrength {
     /// High card, where all cards' labels are distinct: 23456
     HighCard,
@@ -41,80 +116,65 @@ pub enum HandStrength {
 }
 
 impl Hand {
-    pub fn from_cards(cards: &HashMap<char, u32>) -> Self {
-        let r = cards
-            .iter()
-            .map(|(card, count)| {
-                match count {
-                    // 5 => HandStrength::FiveOfAKind,
-                    // 4 => HandStrength::FourOfAKind,
-                    // 3 if todo!() => HandStrength::FullHouse,
-                    // 3 => HandStrength::ThreeOfAKind,
-                    // 2 if todo!() => HandStrength::TwoPair,
-                    // 1 if todo!() => {
-                    //     HandStrength::OnePair
-                    //     // HandStrength::HighCard
-                    // }
-                    _ => HandStrength::ThreeOfAKind /* unreachable!("unhandled count value") */,
-                }
-            })
-            .collect::<Vec<_>>();
-
-        dbg!(r);
+    pub fn from_cards(cards: &str, bid: u32) -> Self {
+        let card_counts = cards.chars().counts();
+        let counted = card_counts.values().sorted().join("");
+        let strength = match dbg!(counted).deref() {
+            "5" => HandStrength::FiveOfAKind,
+            "14" => HandStrength::FourOfAKind,
+            "23" => HandStrength::FullHouse,
+            "113" => HandStrength::ThreeOfAKind,
+            "122" => HandStrength::TwoPair,
+            "1112" => HandStrength::OnePair,
+            "11111" => HandStrength::HighCard,
+            value => unreachable!("should not be ran, got: {}", value),
+        };
 
         Hand {
-            cards: cards.clone(),
-            strength: HandStrength::ThreeOfAKind,
-            rank: 0,
+            bid,
+            cards: cards
+                .chars()
+                .map(|c| Card::from_char(&c))
+                .collect::<Vec<_>>(),
+            strength,
         }
     }
 }
 
-pub fn calc_hand(hand: &Vec<char>) -> Hand {
-    let mut hand_counts: HashMap<char, u32> = HashMap::new();
-
-    let _ = hand
-        .iter()
-        .map(|card| {
-            if let Some(hc) = hand_counts.get(card) {
-                let count = hc + 1;
-                hand_counts.insert(*card, count);
-            } else {
-                hand_counts.insert(*card, 1);
-            }
-        })
-        .collect::<Vec<_>>();
-
-    Hand::from_cards(&hand_counts)
-}
-
-pub fn parse_game(input: &str) -> IResult<&str, Game> {
+pub fn parse_game(input: &str) -> IResult<&str, (&str, u32)> {
     let (o, (hand, bid)) =
         separated_pair(alphanumeric1, nom::bytes::complete::tag(" "), complete::u32)(input)?;
-    Ok((
-        o,
-        Game {
-            hand: hand.chars().collect(),
-            bid,
-        },
-    ))
+    Ok((o, (hand, bid)))
 }
 
-pub fn parse_games(input: &str) -> IResult<&str, Vec<Game>> {
+pub fn parse_games(input: &str) -> IResult<&str, Vec<(&str, u32)>> {
     separated_list1(line_ending, parse_game)(input)
 }
 
+// 246590450 = too high
+// 245794640 = just right
 pub fn process(input: &str) -> Result<String> {
     let (_, games) = parse_games(input).expect("valid parse");
 
-    let hands = games.iter().fold(Vec::new(), |mut acc, game| {
-        acc.push(calc_hand(&game.hand));
+    let mut hands = games.iter().fold(Vec::new(), |mut acc, game| {
+        acc.push(Hand::from_cards(game.0, game.1));
         acc
     });
 
-    dbg!(games, hands);
+    hands.sort();
 
-    Ok("".to_string())
+    let res: usize = hands
+        .iter()
+        .enumerate()
+        .map(|(i, h)| {
+            dbg!(&i, &h);
+            h.bid as usize * (i + 1)
+        })
+        .sum();
+
+    // dbg!(hands);
+
+    Ok(res.to_string())
 }
 
 #[cfg(test)]
