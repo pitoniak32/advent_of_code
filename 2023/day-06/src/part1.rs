@@ -2,7 +2,6 @@ use std::vec;
 
 use anyhow::Result;
 use nom::{
-    branch::alt,
     bytes::complete::tag,
     character::complete::{self, line_ending, space1},
     multi::separated_list1,
@@ -12,8 +11,8 @@ use nom::{
 
 #[derive(Debug)]
 pub struct Race {
-    pub time_ms: u32,
-    pub distance_mm: u32,
+    pub duration_ms: u32,
+    pub record_distance_mm: u32,
 }
 
 fn parse_races(input: &str) -> IResult<&str, Vec<Race>> {
@@ -29,26 +28,42 @@ fn parse_races(input: &str) -> IResult<&str, Vec<Race>> {
         ),
     )(input)?;
 
-    dbg!(&races);
     let mut races_new: Vec<Race> = vec![];
     let times = races.0;
     let mut dists = races.1.iter();
 
     for time in times {
         races_new.push(Race {
-            time_ms: time,
-            distance_mm: *dists.next().expect("has same dist count as times"),
+            duration_ms: time,
+            record_distance_mm: *dists.next().expect("has same dist count as times"),
         });
     }
 
     Ok((o, races_new))
 }
 
+// 2065338 = just right
 pub fn process(input: &str) -> Result<String> {
     let (_, races) = parse_races(input).expect("valid parse");
 
-    dbg!(&races);
-    Ok("".to_string())
+    let moe = races
+        .iter()
+        .map(|r| {
+            (0..=r.duration_ms)
+                .fold(Vec::<u32>::new(), |mut acc, ms_tick_mult| {
+                    let dist = (r.duration_ms - ms_tick_mult) * ms_tick_mult;
+                    if dist > r.record_distance_mm {
+                        acc.push(dist);
+                    }
+                    acc
+                })
+                .len()
+        })
+        .collect::<Vec<_>>()
+        .iter()
+        .product::<usize>();
+
+    Ok(moe.to_string())
 }
 
 #[cfg(test)]

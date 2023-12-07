@@ -59,9 +59,7 @@ impl<'a> Almanac<'a> {
             dbg!(loc);
             locs.push(loc);
         }
-        *locs.iter()
-            .min()
-            .expect("should have at least one value")
+        *locs.iter().min().expect("should have at least one value")
     }
 }
 
