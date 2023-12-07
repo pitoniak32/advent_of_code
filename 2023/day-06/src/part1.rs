@@ -75,7 +75,7 @@ mod tests {
     fn test_process() -> Result<()> {
         let input = "Time:      7  15   30
 Distance:  9  40  200";
-        assert_eq!("288", process(input)?);
+        assert_eq!(process(input)?, "288");
         Ok(())
     }
 }

@@ -151,7 +151,7 @@ mod tests {
 ......755.
 ...$.*....
 .664.598..";
-        assert_eq!("467835", process(input)?);
+        assert_eq!(process(input)?, "467835");
         Ok(())
     }
 }

@@ -15,7 +15,7 @@ mod tests {
     fn test_process() -> Result<()> {
         todo!("haven't built test yet");
         let input = "";
-        assert_eq!("", process(input)?);
+        assert_eq!(process(input)?, "");
         Ok(())
     }
 }
