@@ -12,6 +12,7 @@ use nom::{
 /// Variants are ordered by their value
 #[derive(Debug, PartialEq, PartialOrd, Eq, Hash, Clone)]
 pub enum Card {
+    J,
     Two,
     Three,
     Four,
@@ -21,7 +22,6 @@ pub enum Card {
     Eight,
     Nine,
     T,
-    J,
     Q,
     K,
     A,
@@ -64,7 +64,7 @@ impl PartialEq for Hand {
 
 impl PartialOrd for Hand {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(&other))
+        Some(self.cmp(other))
     }
 }
 
@@ -76,10 +76,10 @@ impl Ord for Hand {
             return Ordering::Less;
         }
 
-        let mut self_iter = self.cards.iter();
+        let self_iter = self.cards.iter();
         let mut other_iter = other.cards.iter();
 
-        while let Some(sc) = self_iter.next() {
+        for sc in self_iter {
             let oc = other_iter
                 .next()
                 .expect("should have the same number of cards as self");
@@ -118,8 +118,27 @@ pub enum HandStrength {
 impl Hand {
     pub fn from_cards(cards: &str, bid: u32) -> Self {
         let card_counts = cards.chars().counts();
-        let counted = card_counts.values().sorted().join("");
-        let strength = match dbg!(counted).deref() {
+        let counted = if let Some(j_count) = card_counts.get(&'J') {
+            if j_count == &5 {
+                "5".to_string()
+            } else {
+                card_counts
+                    .iter()
+                    .filter_map(|(key, value)| (*key != 'J').then_some(value))
+                    .sorted()
+                    .with_position()
+                    .map(|(pos, cc)| match pos {
+                        itertools::Position::Last => cc + j_count,
+                        itertools::Position::Only => cc + j_count,
+                        _ => *cc,
+                    })
+                    .join("")
+            }
+        } else {
+            card_counts.values().sorted().join("")
+        };
+
+        let strength = match counted.deref() {
             "5" => HandStrength::FiveOfAKind,
             "14" => HandStrength::FourOfAKind,
             "23" => HandStrength::FullHouse,
@@ -151,13 +170,13 @@ pub fn parse_games(input: &str) -> IResult<&str, Vec<(&str, u32)>> {
     separated_list1(line_ending, parse_game)(input)
 }
 
-// 246590450 = too high
-// 245794640 = just right
+// 247899149 = just right
+// 247866544 = too low
 pub fn process(input: &str) -> Result<String> {
     let (_, games) = parse_games(input).expect("valid parse");
 
     let mut hands = games.iter().fold(Vec::new(), |mut acc, game| {
-        acc.push(Hand::from_cards(&game.0, game.1));
+        acc.push(Hand::from_cards(game.0, game.1));
         acc
     });
 
@@ -166,13 +185,8 @@ pub fn process(input: &str) -> Result<String> {
     let res: usize = hands
         .iter()
         .enumerate()
-        .map(|(i, h)| {
-            dbg!(&i, &h);
-            h.bid as usize * (i + 1)
-        })
+        .map(|(i, h)| h.bid as usize * (i + 1))
         .sum();
-
-    // dbg!(hands);
 
     Ok(res.to_string())
 }
@@ -190,7 +204,7 @@ KK677 28
 KTJJT 220
 QQQJA 483";
 
-        assert_eq!(process(input)?, "6440");
+        assert_eq!(process(input)?, "5905");
         Ok(())
     }
 }
