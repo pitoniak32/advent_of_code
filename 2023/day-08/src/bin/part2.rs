@@ -1,6 +1,6 @@
 use day_08::part2::process;
 
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 
 fn main() -> Result<()> {
     let input_file = include_str!("../../input2.txt");
