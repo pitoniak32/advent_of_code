@@ -42,7 +42,7 @@ pub fn process(input: &str) -> Result<String> {
                         }
                         inner_acc
                     });
-            acc.push(inner_placeholders.last().unwrap().clone());
+            acc.push(*inner_placeholders.last().unwrap());
             acc
         })
         .iter()
