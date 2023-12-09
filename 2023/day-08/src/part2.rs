@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap};
 
 use anyhow::Result;
 use nom::{
@@ -8,7 +8,6 @@ use nom::{
     sequence::{delimited, separated_pair},
     IResult,
 };
-use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 #[derive(Debug)]
 pub struct Map<'a> {
@@ -47,40 +46,73 @@ fn parse_map(input: &str) -> IResult<&str, Map> {
     ))
 }
 
+// 13524038372771 = just right
+// 131298 = too low
 // 103038 = too low
 // 103044 = too low
 pub fn process(input: &str) -> Result<String> {
     let (_, map) = parse_map(input).expect("valid parse");
 
-    let starting_nodes = map.nodes.iter().filter(|n| n.0.ends_with("A"));
-    let starting_nodes_found: HashMap<&str, bool> = starting_nodes
-        .clone()
-        .map(|n| (n.0.clone(), false))
+    let starting_nodes: Vec<&str> = map
+        .nodes
+        .keys()
+        .filter(|n| n.ends_with('A'))
+        .cloned()
         .collect();
 
-    let mut steps = 1;
+    let instructions = map.instructions;
 
-    let mut instructions = map.instructions.iter();
-    let mut starting_nodes_f = starting_nodes_found.clone();
+    // Needed help to get this one.
+    let result = starting_nodes
+        .iter()
+        .map(|node| {
+            let mut starting_nodes_visited = vec![*node];
+            let mut current_node = *node;
+            instructions
+                .iter()
+                .cycle()
+                .enumerate()
+                .find_map(|(index, instruction)| {
+                    let option = map
+                        .nodes
+                        .get(current_node)
+                        .expect("should always have a node");
 
-    while !starting_nodes_f.clone().iter().all(|n| *n.1) {
-        if let Some(instruction) = instructions.next() {
-            for node in starting_nodes.clone() {
-                let choice = if instruction == &'L' { node.1.0 } else { node.1.1 };
+                    let next_node = match instruction {
+                        'L' => option.0,
+                        'R' => option.1,
+                        _ => unreachable!("should never have anything other than LR"),
+                    };
 
-                if choice.ends_with('Z') {
-                    println!("Found: {:?}", choice);
-                    starting_nodes_f.insert(node.0, true);
-                }
+                    if next_node.ends_with('Z') {
+                        Some(index + 1)
+                    } else {
+                        starting_nodes_visited.push(next_node);
+                        current_node = next_node;
+                        None
+                    }
+                })
+                .expect("should find cycle")
+        })
+        .collect::<Vec<usize>>();
 
-                steps += 1;
-            }
-        } else {
-            instructions = map.instructions.iter().clone()
-        }
+    Ok(lcm(&result).to_string())
+}
+
+pub fn lcm(nums: &[usize]) -> usize {
+    if nums.len() == 1 {
+        return nums[0];
     }
+    let a = nums[0];
+    let b = lcm(&nums[1..]);
+    a * b / gcd_of_two_numbers(a, b)
+}
 
-    Ok(steps.to_string())
+fn gcd_of_two_numbers(a: usize, b: usize) -> usize {
+    if b == 0 {
+        return a;
+    }
+    gcd_of_two_numbers(b, a % b)
 }
 
 #[cfg(test)]
