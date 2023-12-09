@@ -18,36 +18,35 @@ pub fn parse_histories(input: &str) -> IResult<&str, Vec<Vec<i64>>> {
 pub fn process(input: &str) -> Result<String> {
     let (_, histories) = parse_histories(input).expect("should be valid parse");
 
-    let mut expanded_histories = histories.into_iter().fold(Vec::new(), |mut acc, hist| {
-        acc.push(expand_history(hist));
-        acc
-    });
-
-    let ends: i64 = expanded_histories
-        .iter_mut()
-        .fold(Vec::new(), |mut acc: Vec<i64>, ex_hist| {
+    let ends: i64 = histories
+        .into_iter()
+        .fold(Vec::new(), |mut acc, hist| {
+            let mut ex_hist = expand_history(hist);
             ex_hist.reverse();
-            let inner_placeholders = ex_hist
-                .iter()
-                .enumerate()
-                .fold(Vec::new(), |mut inner_acc, (i, row)| {
-                    let curr_last = row.last().expect("row should have last element");
+            let inner_placeholders =
+                ex_hist
+                    .iter()
+                    .enumerate()
+                    .fold(Vec::new(), |mut inner_acc, (i, row)| {
+                        let curr_last = row.last().expect("row should have last element");
 
-                    if i == 0 {
-                        inner_acc.push(*curr_last)
-                    }
+                        if i == 0 {
+                            inner_acc.push(*curr_last)
+                        }
 
-                    if let Some(next_row) = ex_hist.get(i + 1) {
-                        let next_last = next_row.last().expect("row should have last element");
-                        let placeholder_filler =
-                            next_last + *inner_acc.get(i).expect("should have placeholder filled");
-                        inner_acc.push(placeholder_filler);
-                    }
-                    inner_acc
-                });
+                        if let Some(next_row) = ex_hist.get(i + 1) {
+                            let next_last = next_row.last().expect("row should have last element");
+                            let placeholder_filler = next_last
+                                + *inner_acc.get(i).expect("should have placeholder filled");
+                            inner_acc.push(placeholder_filler);
+                        }
+                        inner_acc
+                    });
             acc.push(inner_placeholders.last().unwrap().clone());
             acc
-        }).iter().sum();
+        })
+        .iter()
+        .sum();
 
     Ok(ends.to_string())
 }
@@ -125,9 +124,9 @@ mod tests {
 
     #[test]
     fn test_expand_history_3() -> Result<()> {
-        let input = vec![10,13,16,21,30,45];
+        let input = vec![10, 13, 16, 21, 30, 45];
         let expected = vec![
-            vec![10,13,16,21,30,45],
+            vec![10, 13, 16, 21, 30, 45],
             vec![3, 3, 5, 9, 15],
             vec![0, 2, 4, 6],
             vec![2, 2, 2],
@@ -139,7 +138,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_process() -> Result<()> {
         let input = "0 3 6 9 12 15
 1 3 6 10 15 21

@@ -1,15 +1,13 @@
 use anyhow::Result;
 
-pub fn process(
-    input: &str,
-) -> Result<String> {
+pub fn process(input: &str) -> Result<String> {
     todo!("{input}");
 }
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_process() -> Result<()> {
