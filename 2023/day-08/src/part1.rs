@@ -69,26 +69,24 @@ pub fn process(input: &str) -> Result<String> {
     let mut found_end = false;
 
     while !found_end {
-        instructions
-            .map(|instruction| {
-                let next_option = map
-                    .nodes
-                    .get(choice)
-                    .expect("should always have a corresponding node");
+        instructions.for_each(|instruction| {
+            let next_option = map
+                .nodes
+                .get(choice)
+                .expect("should always have a corresponding node");
 
-                if instruction == &'L' {
-                    choice = next_option.0
-                } else {
-                    choice = next_option.1
-                }
+            if instruction == &'L' {
+                choice = next_option.0
+            } else {
+                choice = next_option.1
+            }
 
-                steps += 1;
+            steps += 1;
 
-                if choice == "ZZZ" {
-                    found_end = true;
-                }
-            })
-            .collect::<()>();
+            if choice == "ZZZ" {
+                found_end = true;
+            }
+        });
 
         instructions = map.instructions.iter();
     }

@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 anyhow = { workspace = true }
 nom = { workspace = true }
+rayon = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
