@@ -61,7 +61,7 @@ pub fn process(input: &str) -> Result<String> {
         .len()
         .to_string();
 
-    Ok(moe.to_string())
+    Ok(moe)
 }
 
 #[cfg(test)]

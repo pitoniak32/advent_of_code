@@ -7,7 +7,7 @@ pub enum Token {
     Period,
 }
 
-pub fn touch_c(c: &char, i: i32, j: i32, toks: &Vec<Vec<char>>) -> bool {
+pub fn touch_c(c: &char, i: i32, j: i32, toks: &[Vec<char>]) -> bool {
     if i < 0 || j < 0 {
         return false;
     }
