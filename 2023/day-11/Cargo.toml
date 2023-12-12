@@ -9,6 +9,7 @@ edition = "2021"
 anyhow = { workspace = true }
 nom = { workspace = true }
 itertools = { workspace = true }
+rayon = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }

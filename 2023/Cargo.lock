@@ -325,6 +325,7 @@ dependencies = [
  "itertools",
  "nom",
  "pretty_assertions",
+ "rayon",
  "rstest",
  "rstest_reuse",
 ]
