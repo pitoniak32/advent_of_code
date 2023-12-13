@@ -336,6 +336,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "divan",
+ "itertools",
  "nom",
  "pretty_assertions",
  "rstest",
