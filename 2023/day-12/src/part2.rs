@@ -19,7 +19,7 @@ pub fn parse_arrangement(input: &str) -> IResult<&str, (Vec<char>, Vec<u32>)> {
 }
 
 pub fn process(input: &str) -> Result<String> {
-    let opts = input.lines().map(|l| bruteforce_line(l)).sum::<u32>();
+    let opts = input.lines().map(bruteforce_line).sum::<u32>();
 
     Ok(opts.to_string())
 }
@@ -33,18 +33,29 @@ pub fn bruteforce_line(line: &str) -> u32 {
         .filter(|c| c == &'?')
         .collect::<Vec<char>>();
 
-    let options = repeat_n([".", "#"].into_iter(), wild_cards.len())
+    let result_wildcards = (0..5).flat_map(|_| {
+        let clone = wild_cards.clone();
+        [&wild_cards[..], &clone[..]].concat()
+    }).collect::<Vec<char>>();
+
+    let result_counts = (0..5).flat_map(|_| {
+        let clone = arrange.1.clone();
+        [&arrange.1[..], &clone[..]].concat()
+    }).collect::<Vec<u32>>();
+
+
+    let options = repeat_n([".", "#"].into_iter(), result_wildcards.len())
         .multi_cartesian_product()
         .map(|p| p.join(""))
         .collect::<Vec<String>>();
 
     options
         .into_iter()
-        .filter(|o| check_option(o, arrange.0.clone(), arrange.1.clone()))
+        .filter(|o| check_option(o, &result_wildcards, &result_counts))
         .count() as u32
 }
 
-pub fn check_option(option: &str, line: Vec<char>, counts: Vec<u32>) -> bool {
+pub fn check_option(option: &str, line: &[char], counts: &[u32]) -> bool {
     let mut option_c = option.chars();
 
     let filled = line
@@ -73,11 +84,11 @@ mod tests {
 
     #[rstest]
     #[case("???.### 1,1,3", 1)]
-    #[case(".??..??...?##. 1,1,3", 4)]
+    #[case(".??..??...?##. 1,1,3", 16384)]
     #[case("?#?#?#?#?#?#?#? 1,3,1,6", 1)]
-    #[case("????.#...#... 4,1,1", 1)]
-    #[case("????.######..#####. 1,6,5", 4)]
-    #[case("?###???????? 3,2,1", 10)]
+    #[case("????.#...#... 4,1,1", 16)]
+    #[case("????.######..#####. 1,6,5", 2500)]
+    #[case("?###???????? 3,2,1", 506250)]
     fn test_line(#[case] line: &str, #[case] expected: u32) -> Result<()> {
         assert_eq!(bruteforce_line(line), expected);
         Ok(())
@@ -91,7 +102,7 @@ mod tests {
 ????.#...#... 4,1,1
 ????.######..#####. 1,6,5
 ?###???????? 3,2,1";
-        assert_eq!(process(input)?, "21");
+        assert_eq!(process(input)?, "525152");
         Ok(())
     }
 }

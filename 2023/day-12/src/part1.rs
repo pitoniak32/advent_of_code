@@ -20,7 +20,7 @@ pub fn parse_arrangement(input: &str) -> IResult<&str, (Vec<char>, Vec<u32>)> {
 
 // 7221 = just right
 pub fn process(input: &str) -> Result<String> {
-    let opts = input.lines().map(|l| bruteforce_line(l)).sum::<u32>();
+    let opts = input.lines().map(bruteforce_line).sum::<u32>();
 
     Ok(opts.to_string())
 }
