@@ -33,16 +33,19 @@ pub fn bruteforce_line(line: &str) -> u32 {
         .filter(|c| c == &'?')
         .collect::<Vec<char>>();
 
-    let result_wildcards = (0..5).flat_map(|_| {
-        let clone = wild_cards.clone();
-        [&wild_cards[..], &clone[..]].concat()
-    }).collect::<Vec<char>>();
+    let result_wildcards = (0..5)
+        .flat_map(|_| {
+            let clone = wild_cards.clone();
+            [&wild_cards[..], &clone[..]].concat()
+        })
+        .collect::<Vec<char>>();
 
-    let result_counts = (0..5).flat_map(|_| {
-        let clone = arrange.1.clone();
-        [&arrange.1[..], &clone[..]].concat()
-    }).collect::<Vec<u32>>();
-
+    let result_counts = (0..5)
+        .flat_map(|_| {
+            let clone = arrange.1.clone();
+            [&arrange.1[..], &clone[..]].concat()
+        })
+        .collect::<Vec<u32>>();
 
     let options = repeat_n([".", "#"].into_iter(), result_wildcards.len())
         .multi_cartesian_product()
