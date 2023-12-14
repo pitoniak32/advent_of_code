@@ -37,12 +37,7 @@ pub fn parse_pattern(input: &str) -> IResult<&str, Vec<String>> {
 pub fn transpose_image(image: &[Vec<char>]) -> Vec<Vec<char>> {
     let ncols = image[0].len();
     (0..ncols)
-        .map(|col_idx| {
-            image
-                .iter()
-                .map(|row| row[col_idx])
-                .collect::<Vec<char>>()
-        })
+        .map(|col_idx| image.iter().map(|row| row[col_idx]).collect::<Vec<char>>())
         .collect::<Vec<Vec<char>>>()
 }
 

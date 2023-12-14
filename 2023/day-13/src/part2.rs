@@ -6,6 +6,7 @@ use nom::{
     IResult,
 };
 
+// 31108 = just right
 pub fn process(input: &str) -> Result<String> {
     let (_, patterns) = parse_patterns(input).expect("valid parse");
 
@@ -36,25 +37,17 @@ pub fn parse_pattern(input: &str) -> IResult<&str, Vec<String>> {
 pub fn transpose_image(image: &[Vec<char>]) -> Vec<Vec<char>> {
     let ncols = image[0].len();
     (0..ncols)
-        .map(|col_idx| {
-            image
-                .iter()
-                .map(|row| row[col_idx])
-                .collect::<Vec<char>>()
-        })
+        .map(|col_idx| image.iter().map(|row| row[col_idx]).collect::<Vec<char>>())
         .collect::<Vec<Vec<char>>>()
 }
 
 pub fn check_symetry(pattern: &[String], horizontal_mul: u32) -> u32 {
-    dbg!(pattern);
-
     let mut highest = -1;
     let mut top = 0;
 
     (0..pattern.len()).for_each(|split_at| {
         let (part1, part2) = pattern.split_at(split_at);
 
-        dbg!(&part1, &part2);
         let part1_it = part1.iter();
         let part2_it = part2.iter();
 
@@ -73,7 +66,19 @@ pub fn check_symetry(pattern: &[String], horizontal_mul: u32) -> u32 {
             part2_vec = part2_it.take(part1_len).rev().collect();
         }
 
-        if dbg!(part1_vec) == dbg!(part2_vec) {
+        let diffs = part1_vec
+            .iter()
+            .zip(part2_vec.iter())
+            .map(|(s1, s2)| {
+                s1.chars()
+                    .zip(s2.chars())
+                    .filter(|(c1, c2)| c1 != c2)
+                    .count()
+            })
+            .filter(|v| v > &0)
+            .collect::<Vec<_>>();
+
+        if diffs.len() == 1 && diffs.first().expect("should have 1") <= &1 {
             highest = split_at as i32;
             top = part1.len();
         }
@@ -99,8 +104,6 @@ fn check_horizontal_vertical(pattern: &[String]) -> u32 {
             .map(String::from_iter)
             .collect::<Vec<_>>();
 
-        dbg!(&transposed_pattern);
-
         result = check_symetry(&transposed_pattern, 0);
     }
     result
@@ -121,7 +124,7 @@ mod tests {
 ..#.##.#.
 ..##..##.
 #.#.##.#.",
-        5
+        300
     )]
     #[case(
         "#...##..#
@@ -131,17 +134,7 @@ mod tests {
 #####.##.
 ..##..###
 #....#..#",
-        400
-    )]
-    #[case(
-        "#....#..#
-..##..###
-#####.##.
-#####.##.
-..##..###
-#....#..#
-#...##..#",
-        300
+        100
     )]
     fn test_one(#[case] input: &str, #[case] expected: u32) -> Result<()> {
         let (_, pattern) = parse_pattern(input).expect("valid parse");
@@ -166,7 +159,7 @@ mod tests {
 #####.##.
 ..##..###
 #....#..#";
-        assert_eq!(process(input)?, "405");
+        assert_eq!(process(input)?, "400");
         Ok(())
     }
 }
