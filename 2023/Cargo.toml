@@ -8,6 +8,7 @@ members = [
 ]
 
 [workspace.dependencies]
+util = { path = "./util"}
 anyhow = "1.0.75"
 pretty_assertions = "1.4.0"
 rstest = "0.18.2"

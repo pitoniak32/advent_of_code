@@ -1,0 +1,22 @@
+[package]
+name = "day-14"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = { workspace = true }
+nom = { workspace = true }
+util = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+rstest = { workspace = true }
+rstest_reuse = { workspace = true }
+divan = { workspace = true }
+
+[[bench]]
+name = "day-14"
+path = "benches/benchmarks.rs"
+harness = false
