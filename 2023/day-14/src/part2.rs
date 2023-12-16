@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fmt::Display};
 
 use anyhow::Result;
-use util::{transpose_matrix};
+use util::transpose_matrix;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Copy)]
 pub enum Tile {
