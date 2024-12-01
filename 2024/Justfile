@@ -1,0 +1,22 @@
+set dotenv-load
+
+# Run a specific day and part.
+run day="$DAY" part="$PART": 
+  @echo "{{BOLD}}go run day-{{day}}/part{{part}}/part{{part}}.go day-{{day}}/input{{part}}.txt{{NORMAL}}" 1>&2
+  @go run day-{{day}}/part{{part}}/part{{part}}.go day-{{day}}/input{{part}}.txt
+
+# Run tests for a specific day and part.
+test day="$DAY" part="$PART" flags="": 
+  @echo "{{BOLD}}go test {{flags}} day-{{day}}/part{{part}}/*_test.go{{NORMAL}}" 1>&2
+  @go test {{flags}} day-{{day}}/part{{part}}/*_test.go
+
+# Generate a new day folder with starter binary and test files.
+gen day:
+  mkdir day-{{day}} && cp -r ./template/* ./day-{{day}}/ 
+
+rn:
+  echo 'This is a recipe!'
+
+# this is a comment
+an:
+  @echo 'This is another recipe.'
