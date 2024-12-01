@@ -7,8 +7,8 @@ run day="$DAY" part="$PART":
 
 # Run tests for a specific day and part.
 test day="$DAY" part="$PART" flags="": 
-  @echo "{{BOLD}}go test {{flags}} day-{{day}}/part{{part}}/*_test.go{{NORMAL}}" 1>&2
-  @go test {{flags}} day-{{day}}/part{{part}}/*_test.go
+  @echo "{{BOLD}}go test {{flags}} `pwd`/day-{{day}}/part{{part}}{{NORMAL}}" 1>&2
+  @go test {{flags}} `pwd`/day-{{day}}/part{{part}}
 
 # Generate a new day folder with starter binary and test files.
 gen day:
