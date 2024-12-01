@@ -2,8 +2,8 @@ set dotenv-load
 
 # Run a specific day and part.
 run day="$DAY" part="$PART": 
-  @echo "{{BOLD}}go run day-{{day}}/part{{part}}/part{{part}}.go day-{{day}}/input{{part}}.txt{{NORMAL}}" 1>&2
-  @go run day-{{day}}/part{{part}}/part{{part}}.go day-{{day}}/input{{part}}.txt
+  @echo "{{BOLD}}go run day-{{day}}/part{{part}}/part{{part}}.go day-{{day}}{{NORMAL}}" 1>&2
+  @go run day-{{day}}/part{{part}}/part{{part}}.go day-{{day}}
 
 # Run tests for a specific day and part.
 test day="$DAY" part="$PART" flags="": 

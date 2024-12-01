@@ -7,6 +7,6 @@ import (
 )
 
 func main() {
-	inputFileContents := util.GetInputContents()
+	inputFileContents := util.GetInputContents("input2.txt")
 	fmt.Println(string(inputFileContents))
 }
