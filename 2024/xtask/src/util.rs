@@ -15,7 +15,6 @@ pub fn setup_day_folder(dir: &PathBuf) -> anyhow::Result<()> {
 
     if let Ok(mut input1_file) = OpenOptions::new()
         .create_new(true)
-        .write(true)
         .append(true)
         .open(dir.join("input1.txt"))
     {
@@ -26,7 +25,6 @@ pub fn setup_day_folder(dir: &PathBuf) -> anyhow::Result<()> {
 
     if let Ok(mut input2_file) = OpenOptions::new()
         .create_new(true)
-        .write(true)
         .append(true)
         .open(dir.join("input2.txt"))
     {
@@ -37,4 +35,3 @@ pub fn setup_day_folder(dir: &PathBuf) -> anyhow::Result<()> {
 
     Ok(())
 }
-

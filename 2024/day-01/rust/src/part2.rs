@@ -5,7 +5,7 @@ pub fn process(input: &str) -> Result<String> {
         (Vec::<u32>::new(), Vec::<u32>::new()),
         |(mut first_list, mut second_list), line| {
             let parts = line.split("   ").collect::<Vec<_>>();
-            let first = parts.get(0).expect("input should have a first value");
+            let first = parts.first().expect("input should have a first value");
             let second = parts.get(1).expect("input should have a second value");
             first_list.push(
                 first
@@ -39,7 +39,7 @@ pub fn process(input: &str) -> Result<String> {
         total_similarity += first_val * curr_count;
     }
 
-    return Ok(total_similarity.to_string());
+    Ok(total_similarity.to_string())
 }
 
 #[cfg(test)]

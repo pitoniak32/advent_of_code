@@ -27,28 +27,24 @@ pub fn handle_go(cli: XTaskCli, project_root: PathBuf) -> anyhow::Result<()> {
                 .status()?;
         }
         XTaskCommands::Run(args) => {
-            dbg!(&project_root);
             let day_string = get_day_string(args.day);
             let part_string = get_part_string(args.part);
             let path = PathBuf::new()
                 .join(&day_string)
                 .join("go")
                 .join(&part_string)
-                .join(&format!("{}.go", part_string));
+                .join(format!("{}.go", part_string));
             Command::new("go")
-                .args(vec!["run", &path.to_string_lossy().to_string()])
+                .args(vec!["run", path.to_string_lossy().as_ref()])
                 .current_dir(project_root)
                 .status()?;
         }
         XTaskCommands::Test(args) => {
             let day_string = get_day_string(args.day);
             let part_string = get_part_string(args.part);
-            let path = project_root
-                .join(&day_string)
-                .join("go")
-                .join(&format!("{}", part_string));
+            let path = project_root.join(&day_string).join("go").join(&part_string);
             Command::new("go")
-                .args(vec!["test", "-v", &path.to_string_lossy().to_string()])
+                .args(vec!["test", "-v", path.to_string_lossy().as_ref()])
                 .current_dir(project_root)
                 .status()?;
         }

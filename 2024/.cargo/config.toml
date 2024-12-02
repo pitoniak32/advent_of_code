@@ -1,5 +1,7 @@
 [alias]
 xtask = "run --release --package xtask --"
-r = "xtask run"
+rr = "xtask -l rust run"
+rg = "xtask -l go run"
 b = "xtask build"
-t = "xtask test"
+tr = "xtask -l rust test"
+tg = "xtask -l go test"

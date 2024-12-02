@@ -32,7 +32,6 @@ pub fn handle_rust(cli: XTaskCli, project_root: PathBuf) -> anyhow::Result<()> {
                 .status()?;
         }
         XTaskCommands::Run(mut args) => {
-            dbg!(&project_root);
             Command::new(cargo)
                 .current_dir(project_root)
                 .args(cargo_day_part_opts("run", &mut args))

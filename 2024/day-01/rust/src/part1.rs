@@ -5,7 +5,7 @@ pub fn process(input: &str) -> Result<String> {
         (Vec::<u32>::new(), Vec::<u32>::new()),
         |(mut first_list, mut second_list), line| {
             let parts = line.split("   ").collect::<Vec<_>>();
-            let first = parts.get(0).expect("input should have a first value");
+            let first = parts.first().expect("input should have a first value");
             let second = parts.get(1).expect("input should have a second value");
             first_list.push(
                 first
@@ -34,7 +34,7 @@ pub fn process(input: &str) -> Result<String> {
         .map(|(first, second)| first.abs_diff(second))
         .sum::<u32>();
 
-    return Ok(result.to_string());
+    Ok(result.to_string())
 }
 
 #[cfg(test)]
