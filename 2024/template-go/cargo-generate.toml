@@ -1,0 +1,2 @@
+[placeholders]
+day = { prompt = "Which day are you generating for (day-XX)?", type = "string" }
